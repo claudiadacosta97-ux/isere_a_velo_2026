@@ -379,8 +379,8 @@ async function endGame() {
 
     try {
       const { error } = await client
-        .from("scores")
-        .insert(entry);
+  .from("scores")
+  .insert([entry]); // 🔥 IMPORTANT : tableau
 
       if (error) throw error;
 
