@@ -906,31 +906,9 @@ canvas.addEventListener("pointerdown", (event) => {
   }
 });
 
-  if (pointInRect(point.x, point.y, ui.touchCrouchButton) || point.x < WIDTH * 0.35) {
-    keys.down = true;
-    player.crouchFrames = 42;
-    activeTouchControl = "crouch";
-    return;
-  }
-
-  if (!keys.space) {
-    jump();
-  }
-
-  keys.space = true;
-  activeTouchControl = "jump";
-});
-
 function stopTouchControl() {
   keys.space = false;
   keys.down = false;
-  activeTouchControl = null;
-}
-
-  if (activeTouchControl === "crouch") {
-    keys.down = false;
-  }
-
   activeTouchControl = null;
 }
 
