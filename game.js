@@ -1,6 +1,10 @@
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
 
+const mobileInput = document.getElementById("mobileInput");
+mobileInput.addEventListener("input", (e) => {
+  playerName = e.target.value.toUpperCase().slice(0, 10);
+});
 const WIDTH = canvas.width;
 const HEIGHT = canvas.height;
 const ROUTE_Y = 220;
@@ -727,29 +731,36 @@ window.addEventListener("keydown", (event) => {
   }
 
   if (state === "decor") {
-    if (event.code === "ArrowLeft") {
-      selectedDecorIndex = moveSelection(-1, decorChoices.length, selectedDecorIndex);
-      return;
-    }
-
-    if (event.code === "ArrowRight") {
-      selectedDecorIndex = moveSelection(1, decorChoices.length, selectedDecorIndex);
-      return;
-    }
-
-    if (event.code === "Space") {
-      if (selectionFlow === "change") {
-        startGame();
-      } else {
-        state = "name";
-      }
-      return;
-    }
+  if (event.code === "ArrowLeft") {
+    selectedDecorIndex = moveSelection(-1, decorChoices.length, selectedDecorIndex);
+    return;
   }
+
+  if (event.code === "ArrowRight") {
+    selectedDecorIndex = moveSelection(1, decorChoices.length, selectedDecorIndex);
+    return;
+  }
+
+  if (event.code === "Space") {
+    if (selectionFlow === "change") {
+      startGame();
+    } else {
+      state = "name";
+
+      // ✅ VERSION + FIABLE MOBILE
+     requestAnimationFrame(() => {
+  mobileInput.value = playerName;
+  mobileInput.focus();
+      });
+    }
+    return;
+  }
+}
 
   if (state === "name") {
     if (event.code === "Space") {
       state = "howto";
+     mobileInput.blur();
       return;
     }
 
@@ -904,9 +915,17 @@ canvas.addEventListener("click", (event) => {
         startGame();
       } else {
         state = "name";
+
+        requestAnimationFrame(() => {
+          mobileInput.value = playerName; // 🔥 IMPORTANT
+          mobileInput.focus();
+        });
       }
+      return; // ✅ IMPORTANT
     }
   }
+
+  // ✅ SORTI DU DECOR → blocs indépendants
 
   if (state === "howto" && pointInRect(x, y, ui.howToButton)) {
     startGame();
@@ -929,8 +948,6 @@ canvas.addEventListener("click", (event) => {
   if (state === "ranking" && pointInRect(x, y, ui.replayButton)) {
     rankingChoice = 1;
     startGame();
+    return;
   }
 });
-
-requestAnimationFrame(loop);
- 
