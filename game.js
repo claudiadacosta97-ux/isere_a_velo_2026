@@ -71,7 +71,9 @@ const ui = {
   rankingButton: { x: 320, y: 258, width: 260, height: 24 },
   changeCharacterButton: { x: 320, y: 256, width: 250, height: 26 },
   replayButton: { x: 590, y: 256, width: 180, height: 26 },
-  howToButton: { x: 390, y: 236, width: 120, height: 40 }
+  howToButton: { x: 390, y: 236, width: 120, height: 40 },
+  touchCrouchButton: { x: 18, y: 154, width: 110, height: 42 },
+  touchJumpButton: { x: 772, y: 154, width: 110, height: 42 }
 };
 
 const obstacleTypes = {
@@ -118,6 +120,8 @@ let selectionFlow = "intro";
 let rankingChoice = 1;
 let lastTime = 0;
 let savedThisRun = false;
+let touchControlsActive = "ontouchstart" in window || navigator.maxTouchPoints > 0;
+let activeTouchControl = null;
 
 const keys = {
   down: false,
@@ -232,6 +236,14 @@ function pointInRect(x, y, rect) {
     y >= rect.y &&
     y <= rect.y + rect.height
   );
+}
+
+function canvasPoint(event) {
+  const rect = canvas.getBoundingClientRect();
+  return {
+    x: (event.clientX - rect.left) * (canvas.width / rect.width),
+    y: (event.clientY - rect.top) * (canvas.height / rect.height)
+  };
 }
 
 function setFont(size) {
@@ -503,6 +515,8 @@ function drawGame() {
       HEIGHT - 12
     );
   }
+
+  drawTouchControls();
 }
 
 function drawHome() {
@@ -543,6 +557,13 @@ function drawActionButton(rect, label, selected) {
   ctx.fill();
   drawText(label, rect.x + rect.width / 2, rect.y + rect.height / 2 + 1, 8, selected ? "white" : "#f39557");
   ctx.restore();
+}
+
+function drawTouchControls() {
+  if (!touchControlsActive) return;
+
+  drawActionButton(ui.touchCrouchButton, "BAS", activeTouchControl === "crouch");
+  drawActionButton(ui.touchJumpButton, "SAUT", activeTouchControl === "jump");
 }
 
 function drawSelectionControls() {
@@ -801,10 +822,48 @@ window.addEventListener("keyup", (event) => {
   if (event.code === "ArrowDown") keys.down = false;
 });
 
+canvas.addEventListener("pointerdown", (event) => {
+  if (event.pointerType === "mouse" || state !== "game") return;
+
+  event.preventDefault();
+  touchControlsActive = true;
+  const point = canvasPoint(event);
+
+  if (pointInRect(point.x, point.y, ui.touchCrouchButton) || point.x < WIDTH * 0.35) {
+    keys.down = true;
+    player.crouchFrames = 42;
+    activeTouchControl = "crouch";
+    return;
+  }
+
+  if (!keys.space) {
+    jump();
+  }
+
+  keys.space = true;
+  activeTouchControl = "jump";
+});
+
+function stopTouchControl() {
+  if (activeTouchControl === "jump") {
+    keys.space = false;
+  }
+
+  if (activeTouchControl === "crouch") {
+    keys.down = false;
+  }
+
+  activeTouchControl = null;
+}
+
+canvas.addEventListener("pointerup", stopTouchControl);
+canvas.addEventListener("pointercancel", stopTouchControl);
+canvas.addEventListener("pointerleave", stopTouchControl);
+
 canvas.addEventListener("click", (event) => {
-  const rect = canvas.getBoundingClientRect();
-  const x = (event.clientX - rect.left) * (canvas.width / rect.width);
-  const y = (event.clientY - rect.top) * (canvas.height / rect.height);
+  const point = canvasPoint(event);
+  const x = point.x;
+  const y = point.y;
 
   if (state === "home" && pointInRect(x, y, ui.homeButton)) {
     selectionFlow = "intro";
