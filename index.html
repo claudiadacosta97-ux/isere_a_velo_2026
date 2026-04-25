@@ -3,6 +3,7 @@
 <head>
   <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
   <title>Isère Bike 2026</title>
   <style>
     body {
@@ -12,9 +13,17 @@
       justify-content: center;
       align-items: center;
       height: 100vh;
+      overflow: hidden;
+      touch-action: none;
+      user-select: none;
     }
     canvas {
       border: 2px solid white;
+      box-sizing: border-box;
+      max-width: 100vw;
+      max-height: 100vh;
+      height: auto;
+      touch-action: none;
     }
   </style>
 </head>
