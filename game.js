@@ -10,7 +10,7 @@ mobileInput.addEventListener("input", (e) => {
 });
 
 // =========================
-// 📱 RESPONSIVE (AJOUT PRO)
+// 📱 RESPONSIVE
 // =========================
 function resizeCanvas() {
   const ratio = 900 / 300;
@@ -47,10 +47,6 @@ const SUPABASE_URL = "https://egeqeghmseeufyupidgl.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1Ni...";
 
 ctx.imageSmoothingEnabled = false;
-
-// =========================
-// (TON CODE RESTE IDENTIQUE JUSQU'À drawTouchControls)
-// =========================
 
 function loadImage(fileName, fallbackName) {
   const img = new Image();
@@ -438,7 +434,6 @@ async function endGame() {
 
       if (error) throw error;
 
-      // 🔥 ATTEND VRAIMENT le refresh
       await refreshScoresFromSupabase();
 
     } catch (error) {
@@ -755,6 +750,9 @@ function loop(timestamp) {
   requestAnimationFrame(loop);
 }
 
+// =========================
+// KEYDOWN
+// =========================
 window.addEventListener("keydown", (event) => {
   if (event.code === "Space" || event.code === "ArrowDown") {
     event.preventDefault();
@@ -771,12 +769,10 @@ window.addEventListener("keydown", (event) => {
       selectedBikeIndex = moveSelection(-1, bikeChoices.length, selectedBikeIndex);
       return;
     }
-
     if (event.code === "ArrowRight") {
       selectedBikeIndex = moveSelection(1, bikeChoices.length, selectedBikeIndex);
       return;
     }
-
     if (event.code === "Space") {
       state = "decor";
       return;
@@ -784,51 +780,44 @@ window.addEventListener("keydown", (event) => {
   }
 
   if (state === "decor") {
-  if (event.code === "ArrowLeft") {
-    selectedDecorIndex = moveSelection(-1, decorChoices.length, selectedDecorIndex);
-    return;
-  }
-
-  if (event.code === "ArrowRight") {
-    selectedDecorIndex = moveSelection(1, decorChoices.length, selectedDecorIndex);
-    return;
-  }
-
-  if (event.code === "Space") {
-    if (selectionFlow === "change") {
-      startGame();
-    } else {
-      state = "name";
-
-      // ✅ VERSION + FIABLE MOBILE
-     requestAnimationFrame(() => {
-  mobileInput.value = playerName;
-  mobileInput.focus();
-      });
+    if (event.code === "ArrowLeft") {
+      selectedDecorIndex = moveSelection(-1, decorChoices.length, selectedDecorIndex);
+      return;
     }
-    return;
+    if (event.code === "ArrowRight") {
+      selectedDecorIndex = moveSelection(1, decorChoices.length, selectedDecorIndex);
+      return;
+    }
+    if (event.code === "Space") {
+      if (selectionFlow === "change") {
+        startGame();
+      } else {
+        state = "name";
+        requestAnimationFrame(() => {
+          mobileInput.value = playerName;
+          mobileInput.focus();
+        });
+      }
+      return;
+    }
   }
-}
 
   if (state === "name") {
     if (event.code === "Space") {
       state = "howto";
-     mobileInput.blur();
+      mobileInput.blur();
       return;
     }
-
     if (event.code === "Backspace") {
       playerName = playerName.slice(0, -1);
       return;
     }
-
     if (event.key.length === 1 && playerName.length < 10) {
       const nextChar = event.key.toUpperCase();
       if (/^[A-Z0-9_-]$/.test(nextChar)) {
         playerName += nextChar;
       }
     }
-
     return;
   }
 
@@ -836,7 +825,6 @@ window.addEventListener("keydown", (event) => {
     if (event.code === "Space") {
       startGame();
     }
-
     return;
   }
 
@@ -844,7 +832,6 @@ window.addEventListener("keydown", (event) => {
     if (event.code === "Space" && !keys.space) {
       jump();
     }
-
     if (event.code === "Space") keys.space = true;
     if (event.code === "ArrowDown") {
       keys.down = true;
@@ -864,12 +851,10 @@ window.addEventListener("keydown", (event) => {
       rankingChoice = 0;
       return;
     }
-
     if (event.code === "ArrowRight") {
       rankingChoice = 1;
       return;
     }
-
     if (event.code === "Space") {
       if (rankingChoice === 0) {
         selectionFlow = "change";
@@ -881,11 +866,17 @@ window.addEventListener("keydown", (event) => {
   }
 });
 
+// =========================
+// KEYUP
+// =========================
 window.addEventListener("keyup", (event) => {
   if (event.code === "Space") keys.space = false;
   if (event.code === "ArrowDown") keys.down = false;
 });
 
+// =========================
+// TOUCH / POINTER
+// =========================
 canvas.addEventListener("pointerdown", (event) => {
   if (state !== "game") return;
 
@@ -916,6 +907,9 @@ canvas.addEventListener("pointerup", stopTouchControl);
 canvas.addEventListener("pointercancel", stopTouchControl);
 canvas.addEventListener("pointerleave", stopTouchControl);
 
+// =========================
+// CLICK
+// =========================
 canvas.addEventListener("click", (event) => {
   const point = canvasPoint(event);
   const x = point.x;
@@ -932,12 +926,10 @@ canvas.addEventListener("click", (event) => {
       selectedBikeIndex = moveSelection(-1, bikeChoices.length, selectedBikeIndex);
       return;
     }
-
     if (pointInRect(x, y, ui.rightArrow)) {
       selectedBikeIndex = moveSelection(1, bikeChoices.length, selectedBikeIndex);
       return;
     }
-
     if (pointInRect(x, y, ui.validateButton)) {
       state = "decor";
       return;
@@ -949,28 +941,23 @@ canvas.addEventListener("click", (event) => {
       selectedDecorIndex = moveSelection(-1, decorChoices.length, selectedDecorIndex);
       return;
     }
-
     if (pointInRect(x, y, ui.rightArrow)) {
       selectedDecorIndex = moveSelection(1, decorChoices.length, selectedDecorIndex);
       return;
     }
-
     if (pointInRect(x, y, ui.validateButton)) {
       if (selectionFlow === "change") {
         startGame();
       } else {
         state = "name";
-
         requestAnimationFrame(() => {
-          mobileInput.value = playerName; // 🔥 IMPORTANT
+          mobileInput.value = playerName;
           mobileInput.focus();
         });
       }
-      return; // ✅ IMPORTANT
+      return;
     }
   }
-
-  // ✅ SORTI DU DECOR → blocs indépendants
 
   if (state === "howto" && pointInRect(x, y, ui.howToButton)) {
     startGame();
@@ -996,3 +983,8 @@ canvas.addEventListener("click", (event) => {
     return;
   }
 });
+
+// =========================
+// START
+// =========================
+requestAnimationFrame(loop);
