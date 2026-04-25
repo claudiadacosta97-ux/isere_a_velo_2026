@@ -1,3 +1,6 @@
+// =========================
+// INIT
+// =========================
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
 
@@ -5,15 +8,49 @@ const mobileInput = document.getElementById("mobileInput");
 mobileInput.addEventListener("input", (e) => {
   playerName = e.target.value.toUpperCase().slice(0, 10);
 });
+
+// =========================
+// 📱 RESPONSIVE (AJOUT PRO)
+// =========================
+function resizeCanvas() {
+  const ratio = 900 / 300;
+
+  let width = window.innerWidth;
+  let height = width / ratio;
+
+  if (height > window.innerHeight) {
+    height = window.innerHeight;
+    width = height * ratio;
+  }
+
+  canvas.style.width = width + "px";
+  canvas.style.height = height + "px";
+}
+
+window.addEventListener("resize", resizeCanvas);
+resizeCanvas();
+
+canvas.style.imageRendering = "pixelated";
+document.body.style.margin = 0;
+document.body.style.overflow = "hidden";
+document.body.style.touchAction = "none";
+
+// =========================
+// CONSTANTES
+// =========================
 const WIDTH = canvas.width;
 const HEIGHT = canvas.height;
 const ROUTE_Y = 220;
 const DEBUG_HITBOXES = false;
 const STORAGE_KEY = "isere-bike-2026-scores";
 const SUPABASE_URL = "https://egeqeghmseeufyupidgl.supabase.co";
-const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVnZXFlZ2htc2VldWZ5dXBpZGdsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcxMDc1NDYsImV4cCI6MjA5MjY4MzU0Nn0.YGR21zsF8CQ2PeRUWjQjtMbGGosDgxqbWT-EAZd0vmw";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1Ni...";
 
 ctx.imageSmoothingEnabled = false;
+
+// =========================
+// (TON CODE RESTE IDENTIQUE JUSQU'À drawTouchControls)
+// =========================
 
 function loadImage(fileName, fallbackName) {
   const img = new Image();
@@ -564,7 +601,23 @@ function drawActionButton(rect, label, selected) {
 }
 
 function drawTouchControls() {
-  if (!touchControlsActive) return;
+  if (!touchControlsActive || state !== "game") return;
+
+  const scale = canvas.clientWidth / 900;
+
+  ui.touchCrouchButton = {
+    x: 20,
+    y: 300 - 90,
+    width: 140 * scale,
+    height: 60 * scale
+  };
+
+  ui.touchJumpButton = {
+    x: 900 - 160 * scale,
+    y: 300 - 90,
+    width: 140 * scale,
+    height: 60 * scale
+  };
 
   drawActionButton(ui.touchCrouchButton, "BAS", activeTouchControl === "crouch");
   drawActionButton(ui.touchJumpButton, "SAUT", activeTouchControl === "jump");
@@ -834,11 +887,24 @@ window.addEventListener("keyup", (event) => {
 });
 
 canvas.addEventListener("pointerdown", (event) => {
-  if (event.pointerType === "mouse" || state !== "game") return;
+  if (state !== "game") return;
 
   event.preventDefault();
   touchControlsActive = true;
-  const point = canvasPoint(event);
+
+  const rect = canvas.getBoundingClientRect();
+  const x = (event.clientX - rect.left) * (canvas.width / rect.width);
+
+  if (x < WIDTH * 0.4) {
+    keys.down = true;
+    player.crouchFrames = 42;
+    activeTouchControl = "crouch";
+  } else {
+    if (!keys.space) jump();
+    keys.space = true;
+    activeTouchControl = "jump";
+  }
+});
 
   if (pointInRect(point.x, point.y, ui.touchCrouchButton) || point.x < WIDTH * 0.35) {
     keys.down = true;
@@ -856,9 +922,10 @@ canvas.addEventListener("pointerdown", (event) => {
 });
 
 function stopTouchControl() {
-  if (activeTouchControl === "jump") {
-    keys.space = false;
-  }
+  keys.space = false;
+  keys.down = false;
+  activeTouchControl = null;
+}
 
   if (activeTouchControl === "crouch") {
     keys.down = false;
