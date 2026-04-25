@@ -363,34 +363,29 @@ function addScoreFallback(entry) {
 
 async function endGame() {
   if (!savedThisRun) {
+
     const entry = {
-      name: playerName.trim() || "ANONYME",
+      name: playerName || "TEST",
       score: Math.floor(score)
     };
+
+    console.log("🚀 ENTRY:", entry);
+
     const client = getSupabaseClient();
-
-    savedThisRun = true;
-    state = "gameover";
-
-    if (!client) {
-      addScoreFallback(entry);
-      return;
-    }
+    console.log("🧠 CLIENT:", client);
 
     try {
-      const { error } = await client
-  .from("scores")
-  .insert([entry]); // 🔥 IMPORTANT : tableau
+      const { data, error } = await client
+        .from("scores")
+        .insert([entry]);
 
-      if (error) throw error;
+      console.log("📦 RESULT:", data, error);
 
-      await refreshScoresFromSupabase();
-    } catch (error) {
-      console.warn("Envoi du score Supabase impossible, fallback local.", error);
-      addScoreFallback(entry);
+    } catch (e) {
+      console.error("💥 CRASH:", e);
     }
 
-    return;
+    savedThisRun = true;
   }
 
   state = "gameover";
