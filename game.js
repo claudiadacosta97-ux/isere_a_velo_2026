@@ -363,29 +363,34 @@ function addScoreFallback(entry) {
 
 async function endGame() {
   if (!savedThisRun) {
-
     const entry = {
-      name: playerName || "TEST",
+      name: playerName.trim() || "ANONYME",
       score: Math.floor(score)
     };
-
-    console.log("🚀 ENTRY:", entry);
-
     const client = getSupabaseClient();
-    console.log("🧠 CLIENT:", client);
-
-    try {
-      const { data, error } = await client
-        .from("scores")
-        .insert([entry]);
-
-      console.log("📦 RESULT:", data, error);
-
-    } catch (e) {
-      console.error("💥 CRASH:", e);
-    }
 
     savedThisRun = true;
+    state = "gameover";
+
+    if (!client) {
+      addScoreFallback(entry);
+      return;
+    }
+
+    try {
+      const { error } = await client
+        .from("scores")
+        .insert(entry);
+
+      if (error) throw error;
+
+      await refreshScoresFromSupabase();
+    } catch (error) {
+      console.warn("Envoi du score Supabase impossible, fallback local.", error);
+      addScoreFallback(entry);
+    }
+
+    return;
   }
 
   state = "gameover";
@@ -479,6 +484,19 @@ function drawGame() {
 
   ctx.textAlign = "right";
   ctx.fillText(playerName || "JOUEUR", WIDTH - 18, 26);
+
+  const bestScore = leaderboard[0];
+  if (bestScore) {
+    const bestName = String(bestScore.name || "ANONYME").slice(0, 10).toUpperCase();
+    setFont(8);
+    ctx.fillStyle = "black";
+    ctx.textAlign = "right";
+    ctx.fillText(
+      "Meilleur score : " + bestName + " - " + bestScore.score,
+      WIDTH - 12,
+      HEIGHT - 12
+    );
+  }
 }
 
 function drawHome() {
@@ -587,7 +605,7 @@ function drawGameOver() {
   drawHomeBackground();
 
   drawShadowText("GAME OVER", WIDTH / 2, 214, 18, "#f39557");
-  drawShadowText("Score : " + Math.floor(score), WIDTH / 2, 240, 10, "white");
+  drawText("Score : " + Math.floor(score), WIDTH / 2, 240, 10, "black");
   drawActionButton(ui.rankingButton, "Voir le classement", true);
   drawShadowText("Espace", WIDTH / 2, 294, 10, "white");
 }
