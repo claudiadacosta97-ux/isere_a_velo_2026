@@ -367,13 +367,14 @@ async function endGame() {
       name: playerName.trim() || "ANONYME",
       score: Math.floor(score)
     };
+
     const client = getSupabaseClient();
 
     savedThisRun = true;
-    state = "gameover";
 
     if (!client) {
       addScoreFallback(entry);
+      state = "gameover";
       return;
     }
 
@@ -384,13 +385,13 @@ async function endGame() {
 
       if (error) throw error;
 
+      // 🔥 ATTEND VRAIMENT le refresh
       await refreshScoresFromSupabase();
+
     } catch (error) {
-      console.warn("Envoi du score Supabase impossible, fallback local.", error);
+      console.warn("Fallback local", error);
       addScoreFallback(entry);
     }
-
-    return;
   }
 
   state = "gameover";
