@@ -486,13 +486,18 @@ function drawGame() {
   ctx.fillText(playerName || "JOUEUR", WIDTH - 18, 26);
 
   const bestScore = leaderboard[0];
-  if (bestScore) {
-    const bestName = String(bestScore.name || "ANONYME").slice(0, 10).toUpperCase();
+  const currentScore = Math.floor(score);
+  const displayedBest = bestScore && bestScore.score >= currentScore
+    ? bestScore
+    : { name: playerName || "JOUEUR", score: currentScore };
+
+  if (displayedBest) {
+    const bestName = String(displayedBest.name || "ANONYME").slice(0, 10).toUpperCase();
     setFont(8);
     ctx.fillStyle = "black";
     ctx.textAlign = "right";
     ctx.fillText(
-      "Meilleur score : " + bestName + " - " + bestScore.score,
+      "Meilleur score : " + bestName + " - " + displayedBest.score,
       WIDTH - 12,
       HEIGHT - 12
     );
