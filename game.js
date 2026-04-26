@@ -120,7 +120,7 @@ let selectionFlow = "intro";
 let rankingChoice = 1;
 let lastTime = 0;
 let savedThisRun = false;
-let touchControlsActive = "ontouchstart" in window || navigator.maxTouchPoints > 0;
+let touchControlsActive = false;
 let activeTouchControl = null;
 
 const keys = {
@@ -438,8 +438,6 @@ function updateGame(deltaScale) {
   score += deltaScale;
   speed = 2.5 + Math.min(score * 0.00115, 5.6);
   distanceSinceSpawn += speed * deltaScale;
-  routeOffset = (routeOffset + speed * deltaScale) % WIDTH;
-
   updatePlayer(deltaScale);
 
   if (distanceSinceSpawn >= nextSpawnDistance) {
@@ -472,8 +470,7 @@ function drawHitbox(box, color) {
 
 function drawGame() {
   ctx.drawImage(currentBackground, 0, 0, 900, 300);
-  ctx.drawImage(images.route, -routeOffset, ROUTE_Y, 900, 80);
-  ctx.drawImage(images.route, WIDTH - routeOffset, ROUTE_Y, 900, 80);
+  ctx.drawImage(images.route, 0, ROUTE_Y, 900, 80);
 
   for (const obstacle of obstacles) {
     ctx.drawImage(
@@ -515,8 +512,6 @@ function drawGame() {
       HEIGHT - 12
     );
   }
-
-  drawTouchControls();
 }
 
 function drawHome() {
